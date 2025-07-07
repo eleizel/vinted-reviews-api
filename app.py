@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from vinted import Vinted
 
 app = Flask(__name__)
@@ -6,8 +6,16 @@ vinted = Vinted(domain="es")
 
 @app.route("/reviews", methods=["GET"])
 def get_reviews():
-    user_id = 229180248  # Cambia esto por tu ID de Vinted si es necesario
-    response = vinted.user_feedbacks(user_id)
+    user_id = request.args.get("user_id", type=int)
+
+    if not user_id:
+        return jsonify({"error": "Missing or invalid user_id parameter"}), 400
+
+    try:
+        response = vinted.user_feedbacks(user_id)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
     reviews = []
 
     for feedback in response.user_feedbacks:
